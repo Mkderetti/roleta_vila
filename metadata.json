@@ -1,0 +1,8 @@
+{
+  "name": "Roletão Vila",
+  "description": "Uma roleta interativa e moderna para a Vila Ferramentas, otimizada para mobile e desktop.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
