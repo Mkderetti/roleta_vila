@@ -28,15 +28,15 @@ export const Wheel: React.FC<WheelProps> = ({ segments, rotation, isSpinning, on
   const sliceAngle = 360 / sliceCount;
 
   return (
-    <div className="relative flex items-center justify-center w-full max-w-[min(85vw,500px)] aspect-square mx-auto">
+    <div className="relative flex items-center justify-center w-full h-full max-w-[min(80vw,33dvh,340px)] max-h-[min(80vw,33dvh,340px)] aspect-square mx-auto">
       {/* Red Arrow Pointer */}
-      <div className="absolute top-0 z-40 -mt-8 flex flex-col items-center">
+      <div className="absolute top-0 z-40 -mt-6 sm:-mt-8 flex flex-col items-center">
         <motion.div 
-          animate={isSpinning ? { y: [0, 8, 0] } : {}}
+          animate={isSpinning ? { y: [0, 6, 0] } : {}}
           transition={{ repeat: Infinity, duration: 0.15 }}
-          className="relative drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
+          className="relative drop-shadow-[0_6px_6px_rgba(0,0,0,0.5)]"
         >
-          <div className="w-10 h-16 md:w-14 md:h-24 bg-[#ef4444]" 
+          <div className="w-8 h-12 sm:w-11 sm:h-16 bg-[#ef4444]" 
                style={{ clipPath: 'polygon(50% 100%, 0 40%, 20% 40%, 20% 0, 80% 0, 80% 40%, 100% 40%)' }} />
         </motion.div>
       </div>
