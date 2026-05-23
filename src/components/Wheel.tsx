@@ -4,8 +4,9 @@
  */
 
 import { motion } from "motion/react";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { LucideProps } from "lucide-react";
+import { playTickSound } from "../utils/audio.ts";
 
 interface Segment {
   label: string;
@@ -27,6 +28,72 @@ export const Wheel: React.FC<WheelProps> = ({ segments, rotation, isSpinning, on
   const sliceCount = segments.length;
   const sliceAngle = 360 / sliceCount;
 
+  const wheelRef = useRef<HTMLDivElement>(null);
+  const lastSegmentRef = useRef<number>(-1);
+
+  useEffect(() => {
+    if (!isSpinning) {
+      lastSegmentRef.current = -1;
+      return;
+    }
+
+    const element = wheelRef.current;
+    if (!element) return;
+
+    let active = true;
+
+    const checkRotation = () => {
+      if (!active) return;
+
+      const transform = element.style.transform || "";
+      let angle = 0;
+
+      // Extract degree from 'rotate(123deg)' or 'rotateZ(123deg)'
+      const match = transform.match(/rotate(?:Z)?\(([\d.-]+)deg\)/);
+      if (match) {
+        angle = parseFloat(match[1]);
+      } else {
+        // Fallback to computed matrix if inline style is not available or represents matrix
+        try {
+          const st = window.getComputedStyle(element, null);
+          const tr = st.getPropertyValue("transform");
+          if (tr && tr !== "none") {
+            const values = tr.split("(")[1].split(")")[0].split(",");
+            const a = parseFloat(values[0]);
+            const b = parseFloat(values[1]);
+            const angleRad = Math.atan2(b, a);
+            let angleDeg = angleRad * (180 / Math.PI);
+            if (angleDeg < 0) angleDeg += 360;
+            angle = angleDeg;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // Keep angle positive and capped between [0, 360) for clean relative segment checking
+      const normalizedAngle = ((angle % 360) + 360) % 360;
+      
+      // Offset by half of a slice (sliceAngle / 2) so ticks align perfectly with the border boundary crossings
+      const adjustedSliceAngle = 360 / segments.length;
+      const currentSegment = Math.floor((normalizedAngle + adjustedSliceAngle / 2) / adjustedSliceAngle) % segments.length;
+
+      if (lastSegmentRef.current !== -1 && currentSegment !== lastSegmentRef.current) {
+        playTickSound();
+      }
+      lastSegmentRef.current = currentSegment;
+
+      requestAnimationFrame(checkRotation);
+    };
+
+    const handle = requestAnimationFrame(checkRotation);
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(handle);
+    };
+  }, [isSpinning, rotation, segments.length]);
+
   return (
     <div className="relative flex items-center justify-center w-full h-full max-w-[min(80vw,33dvh,340px)] max-h-[min(80vw,33dvh,340px)] aspect-square mx-auto">
       {/* Red Arrow Pointer */}
@@ -43,6 +110,7 @@ export const Wheel: React.FC<WheelProps> = ({ segments, rotation, isSpinning, on
 
       {/* The Wheel with SVG-based decorations for perfect scaling */}
       <motion.div
+        ref={wheelRef}
         className="w-full h-full relative z-20"
         animate={{ rotate: rotation }}
         onAnimationComplete={() => {
@@ -51,7 +119,7 @@ export const Wheel: React.FC<WheelProps> = ({ segments, rotation, isSpinning, on
           }
         }}
         transition={{
-          duration: 4,
+          duration: 6,
           ease: [0.2, 0.8, 0.2, 1] // Fast start, very slow finish for dramatic effect but shorter total time
         }}
       >

@@ -9,6 +9,7 @@ import { useState, useCallback } from "react";
 import confetti from "canvas-confetti";
 import { Wheel } from "./components/Wheel.tsx";
 import { Logo } from "./components/Logo.tsx";
+import { playClickSound, playWinSound, playLossSound } from "./utils/audio.ts";
 
 // Custom Pliers icon matching the Lucide design language
 const Pliers = ({ size = 24, width, height, ...props }: any) => (
@@ -61,6 +62,7 @@ export default function App() {
   const spin = useCallback((choiceColor: string) => {
     if (isSpinning) return;
 
+    playClickSound();
     setSelectedColor(choiceColor);
     setIsSpinning(true);
     setShowResult(false);
@@ -69,7 +71,7 @@ export default function App() {
     // Random landing segment
     const randomIndex = Math.floor(Math.random() * SEGMENTS.length);
     
-    const spinCount = 5;
+    const spinCount = 8;
     const sliceAngle = 360 / SEGMENTS.length;
     
     // Calculate final rotation to land on the segment
@@ -102,16 +104,20 @@ export default function App() {
     setShowResult(true);
 
     if (landed.label === selectedColor) {
+      playWinSound();
       confetti({
         particleCount: 200,
         spread: 90,
         origin: { y: 0.6 },
         colors: [landed.color, '#fbbf24', '#ffffff']
       });
+    } else {
+      playLossSound();
     }
   }, [selectedColor]);
 
   const reset = () => {
+    playClickSound();
     setShowResult(false);
     setSelectedColor(null);
     setResultColor(null);
